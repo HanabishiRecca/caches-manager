@@ -1,0 +1,9 @@
+[Unit]
+Description=Caches manager: create user caches
+
+[Service]
+Type=oneshot
+ExecStart=caches-manager --user
+
+[Install]
+WantedBy=basic.target

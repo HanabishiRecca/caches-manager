@@ -1,0 +1,58 @@
+#!/bin/bash
+
+APP_NAME="caches-manager"
+
+shopt -s nullglob
+
+create_cache() {
+    mkdir -p "$1"
+    [ -e "$2" ] && rm -r "$2"
+    ln -sT "$1" "$2" || true
+}
+
+declare -a TARGETS
+
+read_config() {
+    while read -r line || [ -n "${line}" ]; do
+        [ "${line}" ] && TARGETS+=("${line}")
+    done < "$1"
+}
+
+read_configs_from() {
+    [ -d "$1" ] || return
+
+    for f in "$1/"*.conf; do
+        read_config "${f}"
+    done
+}
+
+create_system_caches() {
+    local dir="/dev/shm"
+    [ -d "${dir}" ] || return
+
+    TARGETS=()
+    read_configs_from "/etc/${APP_NAME}/system"
+
+    for t in "${TARGETS[@]}"; do
+        create_cache "${dir}/tmp/${t}" "${t}"
+    done
+}
+
+create_user_caches() {
+    local dir="${XDG_RUNTIME_DIR:-"/run/user/${UID}"}"
+    [ -d "${dir}" ] || return
+
+    TARGETS=()
+    read_configs_from "/etc/${APP_NAME}/user"
+    read_configs_from "${XDG_CONFIG_HOME:-"${HOME}/.config"}/${APP_NAME}"
+
+    for t in "${TARGETS[@]}"; do
+        create_cache "${dir}/tmp/${t}" "${HOME}/${t}"
+    done
+}
+
+if [ "$1" == "--system" ]; then
+    ((UID == 0)) && create_system_caches
+else
+    create_user_caches
+fi

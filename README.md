@@ -28,6 +28,11 @@ Ensure that the target directories do not contain any valuable data. Tmpfs keeps
 
 3. Changes will be applied on the next boot (or user log-in in case of user service). You can force changes by executing the services manually, but this is not recommended.
 
+### Packages
+
+**Arch Linux**
+- [caches-manager](https://aur.archlinux.org/packages/caches-manager) <sup>AUR</sup>
+
 ### Manual installation
 
 1. Copy `caches-manager` script to some `$PATH` directory, e.g. `/usr/bin`.

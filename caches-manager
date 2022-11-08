@@ -2,6 +2,7 @@
 
 APP_NAME="caches-manager"
 
+set -euo pipefail
 shopt -s nullglob
 
 create_cache() {
@@ -28,7 +29,7 @@ read_configs_from() {
 
 create_system_caches() {
     local dir="/dev/shm"
-    [ -d "${dir}" ] || return
+    [ -d "${dir}" ] || return 2
 
     TARGETS=()
     read_configs_from "/etc/${APP_NAME}/system"
@@ -40,7 +41,7 @@ create_system_caches() {
 
 create_user_caches() {
     local dir="${XDG_RUNTIME_DIR:-"/run/user/${UID}"}"
-    [ -d "${dir}" ] || return
+    [ -d "${dir}" ] || return 2
 
     TARGETS=()
     read_configs_from "/etc/${APP_NAME}/user"
@@ -57,7 +58,7 @@ for arg in "$@"; do
     ARGS["${arg}"]=1
 done
 
-if [ "${ARGS["--system"]}" ]; then
+if [ -v "ARGS['--system']" ]; then
     if ((UID == 0)); then
         create_system_caches
     else
@@ -66,6 +67,6 @@ if [ "${ARGS["--system"]}" ]; then
     fi
 fi
 
-if [ "${ARGS["--user"]}" ]; then
+if [ -v "ARGS['--user']" ]; then
     create_user_caches
 fi

@@ -6,10 +6,38 @@ set -euo pipefail
 shopt -s nullglob
 
 create_cache() {
-    echo "L: $2"
+    local dir
+    local parent
+    dir="$(realpath -s "$2")"
+    parent="$(dirname "${dir}")"
+    echo -n "Linking '${dir}'... "
     mkdir -p "$1"
-    [ -e "$2" ] && rm -r "$2"
-    ln -sT "$1" "$2" || true
+
+    if [ ! -d "${parent}" ]; then
+        echo "parent directory does not exist, skip."
+        return
+    fi
+
+    if [ ! -w "${parent}" ]; then
+        echo "no write access to parent directory, skip."
+        return
+    fi
+
+    if [ -L "${dir}" ]; then
+        if [ "$(readlink "${dir}")" == "$1" ]; then
+            echo "done."
+            return
+        fi
+    elif [ -e "${dir}" ]; then
+        echo -n "target exists, backing up... "
+        mv -fT "${dir}" "${dir}.bak"
+    fi
+
+    if ln -sfT "$1" "${dir}"; then
+        echo "done."
+    else
+        echo "failed."
+    fi
 }
 
 declare -a TARGETS

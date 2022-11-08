@@ -51,8 +51,21 @@ create_user_caches() {
     done
 }
 
-if [ "$1" == "--system" ]; then
-    ((UID == 0)) && create_system_caches
-else
+declare -A ARGS=()
+
+for arg in "$@"; do
+    ARGS["${arg}"]=1
+done
+
+if [ "${ARGS["--system"]}" ]; then
+    if ((UID == 0)); then
+        create_system_caches
+    else
+        echo "System job requires root privileges."
+        exit 13
+    fi
+fi
+
+if [ "${ARGS["--user"]}" ]; then
     create_user_caches
 fi

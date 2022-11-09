@@ -7,9 +7,9 @@ Systemd services are included to automate this process.
 
 1. Enable both system and user services.
 
-```sh
-systemctl enable caches-manager.service
-systemctl --global enable caches-manager.service
+```
+# systemctl enable caches-manager.service
+# systemctl --global enable caches-manager.service
 ```
 
 2. Make your configs.
@@ -26,7 +26,7 @@ User configs treat paths relative to user home directory (e.g. `.cache` will be 
 **WARNING!** All content in the target directories will be purged!  
 Ensure that the target directories do not contain any valuable data. Tmpfs keeps data in RAM and drops it on every shutdown or reboot.  
 
-3. Changes will be applied on the next boot (or user log-in in case of user service). You can force changes by executing the services manually, but this is not recommended.
+3. Changes will be applied on the next boot (or user log-in in case of user service). You can force changes by executing the services or running the script manually, but this is not recommended.
 
 ### Packages
 
@@ -37,3 +37,5 @@ Ensure that the target directories do not contain any valuable data. Tmpfs keeps
 
 1. Copy `caches-manager` script to some `$PATH` directory, e.g. `/usr/bin`.
 2. Copy `systemd` directory to `/usr/lib`.
+
+If you want to use the script without systemd, just make it run early at system startup with `--system` flag and on user log-in with `--user` flag.

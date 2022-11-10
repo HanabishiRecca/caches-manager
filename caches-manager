@@ -30,7 +30,7 @@ create_cache() {
         fi
     elif [ -e "${dir}" ]; then
         echo -n "target exists, backing up... "
-        mv -fT "${dir}" "${dir}.bak"
+        mv -fT --backup=numbered "${dir}" "${dir}.bak"
     fi
 
     if ln -sfT "$1" "${dir}"; then

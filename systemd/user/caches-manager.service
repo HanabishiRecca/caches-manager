@@ -1,5 +1,7 @@
 [Unit]
 Description=Caches manager: create user caches
+DefaultDependencies=no
+Before=systemd-tmpfiles-setup.service
 
 [Service]
 Type=oneshot

@@ -1,9 +1,12 @@
 [Unit]
 Description=Caches manager: create system caches
+DefaultDependencies=no
+After=local-fs.target
+Before=systemd-tmpfiles-setup.service
 
 [Service]
 Type=oneshot
 ExecStart=caches-manager --system
 
 [Install]
-WantedBy=basic.target
+WantedBy=sysinit.target

@@ -3,14 +3,61 @@
 APP_NAME="caches-manager"
 
 set -euo pipefail
-shopt -s nullglob
+shopt -s nullglob dotglob
+
+backup() {
+    [ -e "$1" ] || return
+    echo -n "target exists, backing up... "
+    mv -T --backup=numbered "$1" "$1.bak"
+}
+
+is_not_empty() {
+    for _ in "$1/"*; do
+        return 0
+    done
+    return 1
+}
+
+make_bind() {
+    if ((UID != 0)); then
+        echo "can not bind without root privileges, skip."
+        return 13
+    fi
+
+    if [ -L "$2" ]; then
+        unlink "$2"
+    elif [ -d "$2" ]; then
+        is_not_empty "$2" && backup "$2"
+    else
+        backup "$2"
+    fi
+
+    mkdir -p "$2"
+    mount -B "$1" "$2"
+}
+
+make_link() {
+    if [ -L "$2" ]; then
+        [ "$(readlink "$2")" == "$1" ] && return
+    else
+        backup "$2"
+    fi
+
+    ln -sfT "$1" "$2"
+}
 
 create_cache() {
     local dir
     local parent
     dir="$(realpath -s "$2")"
     parent="$(dirname "${dir}")"
-    echo -n "Linking '${dir}'... "
+
+    if [ "$3" == "b" ]; then
+        echo -n "Binding '${dir}'... "
+    else
+        echo -n "Linking '${dir}'... "
+    fi
+
     mkdir -p "$1"
 
     if [ ! -d "${parent}" ]; then
@@ -23,24 +70,31 @@ create_cache() {
         return
     fi
 
-    if [ -L "${dir}" ]; then
-        if [ "$(readlink "${dir}")" == "$1" ]; then
-            echo "done."
-            return
-        fi
-    elif [ -e "${dir}" ]; then
-        echo -n "target exists, backing up... "
-        mv -fT --backup=numbered "${dir}" "${dir}.bak"
+    if mountpoint -q "${dir}"; then
+        echo "mount point found, skip."
+        return
     fi
 
-    if ln -sfT "$1" "${dir}"; then
-        echo "done."
+    if [ "$3" == "b" ]; then
+        make_bind "$1" "${dir}" || return 0
     else
-        echo "failed."
+        make_link "$1" "${dir}" || return 0
     fi
+
+    echo "done."
 }
 
 declare -a TARGETS
+
+create_caches() {
+    local flag
+    local path
+    for t in "${TARGETS[@]}"; do
+        flag="$(expr "${t}" : '\(.*\):')" || true
+        path="${t#*:}"
+        create_cache "$1/${path}" "$2/${path}" "${flag}"
+    done
+}
 
 read_config() {
     while read -r line || [ -n "${line}" ]; do
@@ -69,13 +123,11 @@ create_system_caches() {
         return 2
     fi
 
-    echo "Linking system targets..."
+    echo "Processing system targets..."
     TARGETS=()
     read_configs_from "/etc/${APP_NAME}/system"
 
-    for t in "${TARGETS[@]}"; do
-        create_cache "${dir}/tmp/${t}" "${t}"
-    done
+    create_caches "${dir}/tmp" ""
 }
 
 create_user_caches() {
@@ -86,14 +138,12 @@ create_user_caches() {
         return 2
     fi
 
-    echo "Linking user targets..."
+    echo "Processing user targets..."
     TARGETS=()
     read_configs_from "/etc/${APP_NAME}/user"
     read_configs_from "${XDG_CONFIG_HOME:-"${HOME}/.config"}/${APP_NAME}"
 
-    for t in "${TARGETS[@]}"; do
-        create_cache "${dir}/tmp/${t}" "${HOME}/${t}"
-    done
+    create_caches "${dir}/tmp" "${HOME}"
 }
 
 declare -A ARGS=()

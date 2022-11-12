@@ -1,7 +1,7 @@
 ## Caches manager
 
-A simple script that helps keep selected directories clean by symlinking to tmpfs ramdisk. Useful for temporary, cache and other junk directories.  
-Systemd services are included to automate this process.  
+A simple script that helps keep selected directories clean by symlinking or binding to tmpfs ramdisk.  
+Useful for temporary, cache and other junk directories.  
 
 ### Usage
 
@@ -19,8 +19,9 @@ The script reads all `.conf` files from respective directories:
 - `/etc/caches-manager/user` - configs for all users.
 - `$XDG_CONFIG_HOME/caches-manager` (`~/.config/caches-manager`) - per-user configs.
 
-Configs are read simply as one path per line.  
-System-wide configs require full absolute paths (e.g. `/var/cache`).  
+Configs are read as one path per line. Default mode of operation is to symlink the directory.  
+If you want to use bind mount instead, prefix the path with `b:`. Bind mounts are more failsafe and keep actual directories if the service disabled/uninstalled, so they are preferred for system directories.  
+System-wide configs require full absolute paths (e.g. `b:/var/cache`).  
 User configs treat paths relative to user home directory (e.g. `.cache` will be resolved to `~/.cache`).  
 
 **WARNING!** All content in the target directories will be purged!  

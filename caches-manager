@@ -159,6 +159,14 @@ create_user_caches() {
     create_caches "${dir}/tmp" "${HOME}"
 }
 
+if (($# == 0)); then
+    echo "No arguments provided."
+    echo "Notice: running this script manually is not recommended."
+    echo "      --system      run system job"
+    echo "      --user        run user job"
+    exit
+fi
+
 declare -A ARGS=()
 
 for arg in "$@"; do

@@ -152,10 +152,14 @@ for arg in "$@"; do
     ARGS["${arg}"]=1
 done
 
-if [ -v "ARGS['--system']" ]; then
+has_arg() {
+    [ "${ARGS["$1"]:-}" ]
+}
+
+if has_arg '--system'; then
     create_system_caches
 fi
 
-if [ -v "ARGS['--user']" ]; then
+if has_arg '--user'; then
     create_user_caches
 fi

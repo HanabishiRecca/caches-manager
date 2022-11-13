@@ -5,12 +5,14 @@ APP_NAME="caches-manager"
 set -euo pipefail
 shopt -s nullglob dotglob
 
+# $1: target directory
 backup() {
     [ -e "$1" ] || return
     echo -n "target exists, backing up... "
     mv -T --backup=numbered "$1" "$1.bak"
 }
 
+# $1: target directory
 is_not_empty() {
     for _ in "$1/"*; do
         return 0
@@ -18,6 +20,8 @@ is_not_empty() {
     return 1
 }
 
+# $1: virtual directory to bind
+# $2: target directory
 make_bind() {
     if ((UID != 0)); then
         echo "can not bind without root privileges, skip."
@@ -36,6 +40,8 @@ make_bind() {
     mount -B "$1" "$2"
 }
 
+# $1: virtual directory to link
+# $2: target directory
 make_link() {
     if [ -L "$2" ]; then
         [ "$(readlink "$2")" == "$1" ] && return
@@ -46,6 +52,9 @@ make_link() {
     ln -sfT "$1" "$2"
 }
 
+# $1: virtual directory to create
+# $2: target directory
+# $3: creation flag
 create_cache() {
     local dir
     local parent
@@ -86,6 +95,8 @@ create_cache() {
 
 declare -a TARGETS
 
+# $1: virtual directory where caches will be created
+# $2: prefix for paths resolving
 create_caches() {
     local flag
     local path
@@ -96,12 +107,14 @@ create_caches() {
     done
 }
 
+# $1: config file
 read_config() {
     while read -r line || [ -n "${line}" ]; do
         [ "${line}" ] && TARGETS+=("${line}")
     done < "$1"
 }
 
+# $1: configs directory
 read_configs_from() {
     [ -d "$1" ] || return
 
@@ -152,6 +165,7 @@ for arg in "$@"; do
     ARGS["${arg}"]=1
 done
 
+# $1: argument to check
 has_arg() {
     [ "${ARGS["$1"]:-}" ]
 }

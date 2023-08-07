@@ -5,6 +5,7 @@ Before=systemd-tmpfiles-setup.service
 
 [Service]
 Type=oneshot
+RemainAfterExit=yes
 ExecStart=caches-manager --user
 
 [Install]

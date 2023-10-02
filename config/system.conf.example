@@ -1,1 +1,4 @@
+# System config example
+
+# Mount '/var/cache' as tmpfs
 b:/var/cache

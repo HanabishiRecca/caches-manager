@@ -101,6 +101,7 @@ create_caches() {
     local flag
     local path
     for t in "${TARGETS[@]}"; do
+        [ "${t:0:1}" == "#" ] && continue
         flag="$(expr "${t}" : '\(.*\):')" || true
         path="${t#*:}"
         create_cache "$1/${path}" "$2/${path}" "${flag}"

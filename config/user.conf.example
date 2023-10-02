@@ -1,1 +1,4 @@
+# User config example
+
+# Symlink '~/.cache' into tmpfs
 .cache

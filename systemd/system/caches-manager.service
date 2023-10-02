@@ -1,7 +1,8 @@
 [Unit]
 Description=Caches manager: create system caches
 DefaultDependencies=no
-Before=local-fs.target systemd-journald.service systemd-tmpfiles-setup.service
+Before=systemd-journald.service systemd-tmpfiles-setup.service shutdown.target
+Conflicts=shutdown.target
 
 [Service]
 Type=oneshot
@@ -9,4 +10,4 @@ RemainAfterExit=yes
 ExecStart=caches-manager --system
 
 [Install]
-WantedBy=sysinit.target
+WantedBy=local-fs.target

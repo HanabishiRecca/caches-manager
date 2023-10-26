@@ -42,8 +42,6 @@ make_mount() {
 # $1: virtual directory to link
 # $2: target directory
 make_link() {
-    mkdir -p "$1"
-
     if [ -L "$2" ]; then
         [ "$(readlink "$2")" == "$1" ] && return 0
     else
@@ -66,6 +64,7 @@ create_cache() {
         echo -n "Mounting '${dir}'... "
     else
         echo -n "Linking '${dir}'... "
+        mkdir -p "$1"
     fi
 
     if [ ! -d "${parent}" ]; then

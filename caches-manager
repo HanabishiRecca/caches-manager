@@ -27,15 +27,14 @@ make_mount() {
         return 13
     fi
 
-    if [ -L "$1" ]; then
-        unlink "$1"
-    elif [ -d "$1" ]; then
-        is_not_empty "$1" && backup "$1"
-    else
-        backup "$1"
+    if [ ! -d "$1" ]; then
+        echo "the target is not a directory, skip."
+        return 1
     fi
 
-    mkdir -p "$1"
+    is_not_empty "$1" &&
+        echo -n "(warning: the directory is not empty, existing content will be overlayed) "
+
     mount -t tmpfs -o "rw,$(stat -c 'mode=%a,uid=%u,gid=%g' "$1")" tmpfs "$1"
 }
 
@@ -72,11 +71,6 @@ create_cache() {
         return 0
     fi
 
-    if [ ! -w "${parent}" ]; then
-        echo "no write access to parent directory, skip."
-        return 0
-    fi
-
     if mountpoint -q "${dir}"; then
         echo "mount point found, skip."
         return 0
@@ -85,6 +79,10 @@ create_cache() {
     if [ "$3" == "b" ]; then
         make_mount "${dir}" || return 0
     else
+        if [ ! -w "${parent}" ]; then
+            echo "no write access to parent directory, skip."
+            return 0
+        fi
         make_link "$1" "${dir}" || return 0
     fi
 
